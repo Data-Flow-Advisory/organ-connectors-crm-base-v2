@@ -1,0 +1,13 @@
+{
+  "state": {
+    "source_name": "SalesforceConnector",
+    "contacts": {
+      "columns": ["Email", "Name", "AccountId"],
+      "rows": [],
+      "row_count": 0
+    }
+  },
+  "context": {
+    "sample_size": 10
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "state": {
+    "source_name": "HubSpotConnector",
+    "contacts": {
+      "columns": ["email", "first_name", "last_name", "lifecycle_stage"],
+      "rows": [["ada@example.com", "Ada", "Lovelace", "customer"]],
+      "row_count": 4210
+    }
+  },
+  "context": {
+    "sample_size": 5,
+    "column_data_type": "string"
+  }
+}

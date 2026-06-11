@@ -1,0 +1,11 @@
+{
+  "state": {
+    "source_name": "PipedriveConnector",
+    "contacts": {
+      "columns": ["name", "org", "value"],
+      "rows": [["Cage Sydney", "Cage Pty", 12000]],
+      "row_count": 1
+    }
+  },
+  "context": {}
+}
