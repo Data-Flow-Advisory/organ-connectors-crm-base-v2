@@ -1,0 +1,42 @@
+{
+  "_README": "The connection-standard ports manifest for organ-connectors-crm-base-v2. Maps the wire addresses decide() reads under `state` (inputs) and writes under `output` (outputs) to types in the shared vocabulary (types.json). Two ports connect iff their `type` matches. This organ extracts the PURE schema/preview policy of AbstractCRMConnector (discovery-engine lib/dataflow_core/connectors/crm_base.py); the side-effecting CRM I/O it wraps is out of scope. See CONNECTORS.md.",
+  "inputs": [
+    {
+      "name": "contacts",
+      "type": "CrmContactsSample",
+      "required": true,
+      "_status": "PROPOSED",
+      "_note": "The handed-in get_contacts(limit=1) sample {columns, rows, row_count} the schema is derived from. Nothing in the seed vocabulary names a sampled CRM tabular result, so this is minted PROPOSED. decide() reads contacts.rows (the empty-vs-populated gate), contacts.columns, and contacts.row_count."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "schema",
+      "type": "DataSchema",
+      "_status": "PROPOSED",
+      "_note": "The derived DataSchema {columns:[{name,data_type}], row_count, source_name} — the faithful port of AbstractCRMConnector.get_schema(). Minted PROPOSED (no DataSchema in the seed vocabulary). The central plannable claim — no contacts rows -> empty schema (columns=[], row_count=0) even when column names are present — is pinned by tests."
+    }
+  ],
+  "_non_ports": {
+    "inputs": {
+      "source_name": "Connector identity string (the source's _source_name / class name); a control/echo scalar carried onto schema.source_name, not a connectable typed product.",
+      "context.sample_size": "Preview size n for sample(); a config scalar (default 5), not a port.",
+      "context.column_data_type": "Data type assigned to every derived column (default 'string'); a config scalar, not a port."
+    },
+    "outputs": {
+      "schema_empty": "Boolean observability mirror of (len(schema.columns) == 0); derivable from the schema port, kept flat for back-compat, not a connectable data product on its own.",
+      "sample_plan": "The {entity:'contacts', limit:n} preview plan derived from context.sample_size; a derived control directive, not a typed data product.",
+      "entities": "Static list ['contacts','deals','companies'] — the entities every CRM connector exposes (the abstract get_* primitives). Constant exposure, not a decided/connectable product.",
+      "capabilities": "Static dict {search:true, write_back:true} — the abstract search()/write_back() primitives. Constant exposure, not a decided/connectable product."
+    }
+  },
+  "_checked": {
+    "corpus_checked": "2026-06-11",
+    "oss_checked": "2026-06-11",
+    "corpus_verdict": "keep",
+    "corpus_rationale": "KEEP on the strict functional axis, but a corpus HAZARD is flagged (see issue). This organ decides a CRM connector's SCHEMA + PREVIEW policy: derive a DataSchema from a sampled contacts result (central invariant: no rows -> empty schema), plan a contacts preview, and statically expose entities/capabilities. Its name and shared source class (lib/dataflow_core/connectors/crm_base.py AbstractCRMConnector) make it LOOK like a duplicate of organ-connectors-crm-base (v1), and its README asserts it is a 'clean re-extraction / rebuild of v1 which went RED'. Both claims are now misleading: (a) v1 is GREEN (latest conformance runs success 2026-06-11) and has its own add-ports-manifest PR in flight, so the 'v1 went RED, fork it' premise is stale; (b) v1's main organ.py is NOT this decider — it is a SCOPE/WRITE-BACK ROUTER (reads available_entities + is_connected + query_type + sensitivity; writes entity_types + write_back_enabled + query_type). v1 and v2 extract DIFFERENT pure concerns from the same abstract base (v1 = dynamic scope/sensitivity-gated write-back routing; v2 = schema-from-sample + preview). Per 'compare concern not name-prefix', deleting either would lose a real, distinct decision, so neither is redundant -> verdict keep. The hazard is the v1/v2 naming collision + the v2 README falsely framing itself as a replacement of v1; the operator should resolve by renaming v2 to its actual concern (e.g. organ-connectors-crm-schema) or consolidating, and correct the README. v2's static entities/capabilities output partially overlaps v1's dynamic entity_types/write_back_enabled, but v2's schema-derivation core and v1's sensitivity-gated write-back core are each held by no sibling.",
+    "oss_verdict": "keep",
+    "oss_rationale": "No permissive OSS adopt-candidate. This organ is a pure, stdlib-only, deterministic decider that extracts ONLY the policy AROUND CRM I/O — schema derivation from a sample, preview planning, static entity/capability exposure — explicitly excluding the side-effecting get_contacts/get_deals/get_companies/search/write_back calls. The OSS CRM landscape is two kinds of thing, both on the OTHER side of the I/O boundary this organ is built around: (1) full CRM applications (Twenty, DjangoCRM, Frappe CRM, ERPNext) that ARE a CRM, not a policy decider over an external one; (2) integration/EL frameworks (Airbyte, Singer/Meltano taps, CloudQuery, Nango, n8n) that perform the actual fetch/sync the abstract get_* methods stand in for. None is a stdlib pure-function 'given a sampled contacts result, derive a DataSchema + preview plan' decider conforming to the {state,context}->{output,rationale,self_metric} organ contract; adopting any would replace the EXTERNAL connector, not this policy organ, and would pull in heavy non-stdlib deps that violate the deterministic stdlib-only contract.",
+    "checked_by": "item-19927"
+  }
+}
